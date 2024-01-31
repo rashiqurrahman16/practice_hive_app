@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:practice_hive_app/models/notes_model.dart';
+
+import 'boxes/boxes.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -10,6 +13,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
+  final titleController = TextEditingController();
+  final descriptionController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,69 +26,74 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Column(
         children: [
-          FutureBuilder(
-            future: Hive.openBox('oyon'),
-            builder: (context, snapshot){
-                return Column(
-                  children: [
-                    ListTile(
-                      title: Text(snapshot.data!.get('name').toString()),
-                      subtitle: Text(snapshot.data!.get('age').toString()),
-                    ),
-                    Text(snapshot.data!.get('name').toString()),
-                    Text(snapshot.data!.get('age').toString()),
-                    Text(snapshot.data!.get('details').toString()),
-                  ],
-                );
-              },
-          ),
-          FutureBuilder(
-            future: Hive.openBox('name'),
-            builder: (context, snapshot){
-              return Column(
-                children: [
-                  ListTile(
-                    title: Text(snapshot.data!.get('abc').toString()),
-                    trailing: IconButton(
-                      onPressed: (){
-                        snapshot.data!.put('abc', 'Rashiqur r');   //if i press the edit button then previous name will be edited with this one
-                        setState(() {
-                          
-                        });
-                      }, icon: Icon(Icons.edit),
-                    ),
 
-                  ),
-                ],
-              );
-            },
-          ),
 
         ],
       ),
       floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            var box = await Hive.openBox('oyon');
-            var box2 = await Hive.openBox('name');
-
-
-            box2.put('abc', 'Rashiqur Rahman');
-            box.put('name', 'RR oyon');
-            box.put('age', '23');
-
-            box.put('details', {
-              'pro' : 'developer',
-              'a' : 'aaaa'
-            });
-
-            print(box.get('name'));
-            print(box.get('age'));
-            print(box.get('details'));
-            print(box.get('details')['pro']);
+            _showMyDialog();
 
           },
         child:  const Icon(Icons.add),
       ),
     );
   }
+
+
+  Future<void> _showMyDialog()async{
+
+    return showDialog(
+        context: context,
+        builder: (context){
+          return AlertDialog(
+            title: Text('Add Notes'),
+            content: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: titleController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter Title',
+                      border: OutlineInputBorder()
+                    ),
+                  ),
+                  SizedBox(height: 20,),
+                  TextFormField(
+                    controller: descriptionController,
+                    decoration: InputDecoration(
+                        hintText: 'Enter Description',
+                        border: OutlineInputBorder()
+                    ),
+                  )
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                  onPressed: (){
+                    final data = NotesModel(
+                        title: titleController.text,
+                        description: descriptionController.text
+                    );
+
+                    final box = Boxes.getData();
+                    box.add(data);
+                    Navigator.pop(context);
+                  },
+                  child: Text('Add'),
+              ),
+              TextButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                  child: Text('cancel')
+              ),
+            ],
+          );
+        }
+    );
+  }
+
+
 }
